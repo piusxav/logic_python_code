@@ -6,7 +6,6 @@ if len (sys.argv) != 2 :
     print ("Usage: python script.py inputfile")
     sys.exit (1)
 	
-print ("testing")
 program_name = sys.argv[0]
 input_file = sys.argv[1]
 
@@ -35,8 +34,8 @@ with open(input_file) as fp:
 		line = fp.readline()
 
 				
-print (outline_list)
-print (subline_list)
+logging.debug (outline_list)
+logging.debug (subline_list)
 
 
 def return_outline_index(prev_index,count,occurance,prev_count):
@@ -74,9 +73,51 @@ for items in outline_list:
 		else:
 			occurance = 1
 	index+=1
- 
-print (outline_indexed_list)
-# to insert + or - based on count of the dots
+
+# To insert + or - based on count of the dots
+# TODO: Need to fix the ordering of the  +/- logic. is broken for now
+def return_subline_index(count,occurance,prev_count):
+	logging.debug("{} {} {}".format(count,occurance,prev_count))
+	tab_string = ""
+	for index in range(0,count):
+		tab_string += " "
+	if count > prev_count:
+		tab_string += "+"
+	elif occurance == 1 or count == prev_count:
+		tab_string += "-"
+	return tab_string	
+
+index = 0
+occurance = 1
+prev_count = subline_count_list[0]
+subline_indexed_list = []
+for items in subline_list:
+	tab_string = return_subline_index(subline_count_list[index],occurance,prev_count)
+	subline_indexed_list.append("{}{}".format(tab_string, subline_list[index]))
+	prev_count = subline_count_list[index]
+	if  subline_count_list[index] != subline_count_list[-1]:
+		if subline_count_list[index] == subline_count_list[index+1]:
+			occurance += 1
+		else:
+			occurance = 1
+	index+=1
+
+# final crude multiplexing logic
+with open(input_file) as fp:
+	line = fp.readline()
+	while line:
+		out_index = 0
+		sub_index = 0
+		for item in outline_list:
+			if re.search(r"%s"%item,line):
+				print(outline_indexed_list[out_index])
+			out_index +=1
+		for item in subline_list:
+			if re.search(r"%s"%item,line):
+				print(subline_indexed_list[sub_index])
+			sub_index +=1
+		line = fp.readline()
+		
 
 
 	
