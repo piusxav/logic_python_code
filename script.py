@@ -21,6 +21,7 @@ with open(input_file) as fp:
 		line_content_list = []
 		pattern = line[0]	
 		count = line.count(pattern)
+		line = line.rstrip()
 		if pattern == '*':
 			outline_count_list.append(count)
 			line_content_list = line.split(pattern)	
@@ -74,32 +75,27 @@ for items in outline_list:
 			occurance = 1
 	index+=1
 
-# To insert + or - based on count of the dots
-# TODO: Need to fix the ordering of the  +/- logic. is broken for now
-def return_subline_index(count,occurance,prev_count):
-	logging.debug("{} {} {}".format(count,occurance,prev_count))
+# To insert + or - based on folding
+def return_subline_index(count,next_count):
+	logging.debug("{} {}".format(count,next_count))
 	tab_string = ""
 	for index in range(0,count):
 		tab_string += " "
-	if count > prev_count:
+	if next_count > count:
 		tab_string += "+"
-	elif occurance == 1 or count == prev_count:
+	else:
 		tab_string += "-"
 	return tab_string	
 
 index = 0
-occurance = 1
-prev_count = subline_count_list[0]
+unedited = 1
+next_count = 1
 subline_indexed_list = []
 for items in subline_list:
-	tab_string = return_subline_index(subline_count_list[index],occurance,prev_count)
+	if  len(subline_count_list) != index+1:
+		next_count = subline_count_list[index+1]
+	tab_string = return_subline_index(subline_count_list[index],next_count)
 	subline_indexed_list.append("{}{}".format(tab_string, subline_list[index]))
-	prev_count = subline_count_list[index]
-	if  subline_count_list[index] != subline_count_list[-1]:
-		if subline_count_list[index] == subline_count_list[index+1]:
-			occurance += 1
-		else:
-			occurance = 1
 	index+=1
 
 # final crude multiplexing logic
@@ -108,12 +104,16 @@ with open(input_file) as fp:
 	while line:
 		out_index = 0
 		sub_index = 0
+		pattern = line[0]
+		line = line.rstrip()
+		line_content_list = line.split(pattern)
+		extracted_line = line_content_list[-1]
 		for item in outline_list:
-			if re.search(r"%s"%item,line):
+			if extracted_line == item:
 				print(outline_indexed_list[out_index])
 			out_index +=1
 		for item in subline_list:
-			if re.search(r"%s"%item,line):
+			if extracted_line == item:
 				print(subline_indexed_list[sub_index])
 			sub_index +=1
 		line = fp.readline()
